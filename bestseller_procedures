@@ -4,7 +4,6 @@ DELIMITER $$
 CREATE PROCEDURE addColumnBestsellerToBooks()
 
 BEGIN
-     ALTER TABLE books DROP COLUMN BESTSELLER;
      ALTER TABLE books ADD BESTSELLER boolean DEFAULT FALSE;
 
      CALL updateBestsellers();
