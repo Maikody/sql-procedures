@@ -1,0 +1,51 @@
+DROP PROCEDURE IF EXISTS addColumnBestsellerToBooks;
+DELIMITER $$
+
+CREATE PROCEDURE addColumnBestsellerToBooks()
+
+BEGIN
+     ALTER TABLE books DROP COLUMN BESTSELLER;
+     ALTER TABLE books ADD BESTSELLER boolean DEFAULT FALSE;
+
+     CALL updateBestsellers();
+END $$
+
+DELIMITER ;
+
+DROP PROCEDURE IF EXISTS updateBestsellers;
+DELIMITER $$
+
+CREATE PROCEDURE updateBestsellers()
+
+BEGIN
+    DECLARE BOOKSRENTED, BOK INT;
+    DECLARE FINISHED INT DEFAULT 0;
+
+    DECLARE ALL_BOOKS CURSOR FOR
+        SELECT BOOK_ID FROM BOOKS;
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND
+        SET FINISHED = 1;
+
+    OPEN ALL_BOOKS;
+
+    WHILE (FINISHED = 0) DO
+            FETCH ALL_BOOKS INTO BOK;
+            IF (FINISHED = 0) THEN
+                SELECT COUNT(*) FROM RENTS
+                WHERE BOOK_ID = BOK
+                INTO BOOKSRENTED;
+                IF (BOOKSRENTED > 2) THEN
+                    UPDATE BOOKS SET BESTSELLER = TRUE
+                    WHERE BOOK_ID = BOK;
+                END IF;
+                COMMIT;
+            END IF;
+        END WHILE;
+
+    CLOSE ALL_BOOKS;
+END $$
+
+DELIMITER ;
+
+CALL addColumnBestsellerToBooks();
